@@ -2,7 +2,6 @@ package releaser
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/goodylabs/releaser/adapters/prompter"
@@ -19,40 +18,39 @@ type ReleaserInstance struct {
 	prompter *prompter.Prompter
 }
 
-func (e *ReleaserInstance) Run() error {
+func (e *ReleaserInstance) Run() (bool, error) {
 	configPath := filepath.Join(e.appDir, "config.json")
 	if !e.release.CheckNeedsCheck(configPath) {
-		return nil
+		return false, nil
 	}
 
 	fmt.Println("Checking for updates...")
 
 	newestRelease, err := e.provider.GetNewestReleaseName()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	confirmMsg := fmt.Sprintf("New version %s is available. Do you want to update? ([y]/n)", newestRelease)
 	confirm, err := e.prompter.Confirm(confirmMsg)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	e.release.ReleaseName = newestRelease
 	e.release.LastCheck = utils.GetCurrentDate()
 	if err := e.release.WriteReleaseCfg(configPath, e.release); err != nil {
-		return err
+		return false, err
 	}
 
 	if !confirm {
-		return nil
+		return false, nil
 	}
 
 	if err := e.provider.PerformUpdate(e.appDir); err == nil {
-		return err
+		return false, err
 	}
-	os.Exit(0)
-	return nil
+	return true, nil
 }
 
 func (e *ReleaserInstance) ForceUpdate() error {

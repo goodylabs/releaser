@@ -27,7 +27,7 @@ func main() {
 			Repo: githubRepo,
 		})
 
-	if err := app.ForceUpdate(); err != nil {
+	if _, err := app.Run(); err != nil {
 		log.Fatal(err)
 	}
 }
