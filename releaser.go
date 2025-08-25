@@ -47,7 +47,7 @@ func (e *ReleaserInstance) Run() (bool, error) {
 		return false, nil
 	}
 
-	if err := e.provider.PerformUpdate(e.appDir); err == nil {
+	if err := e.provider.PerformUpdate(e.appDir); err != nil {
 		return false, err
 	}
 	return true, nil
