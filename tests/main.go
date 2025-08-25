@@ -20,11 +20,14 @@ func main() {
 	githubUser := os.Getenv("GITHUB_USER")
 	githubRepo := os.Getenv("GITHUB_REPO")
 
-	app := releaser.ConfigureGithubApp(&github.GithubOpts{
-		User: githubUser,
-		Repo: githubRepo,
-	})
-	if err := app.Run(devPath); err != nil {
+	app := releaser.ConfigureGithubApp(
+		devPath,
+		&github.GithubOpts{
+			User: githubUser,
+			Repo: githubRepo,
+		})
+
+	if err := app.ForceUpdate(); err != nil {
 		log.Fatal(err)
 	}
 }

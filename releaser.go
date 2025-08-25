@@ -18,8 +18,8 @@ type ReleaserInstance struct {
 	prompter *prompter.Prompter
 }
 
-func (e *ReleaserInstance) Run(appDir string) error {
-	configPath := filepath.Join(appDir, "config.json")
+func (e *ReleaserInstance) Run() error {
+	configPath := filepath.Join(e.appDir, "config.json")
 	if !e.release.CheckNeedsCheck(configPath) {
 		return nil
 	}
@@ -44,13 +44,33 @@ func (e *ReleaserInstance) Run(appDir string) error {
 	}
 
 	if confirm {
-		return e.provider.PerformUpdate(appDir)
+		return e.provider.PerformUpdate(e.appDir)
 	}
 	return nil
 }
 
-func ConfigureGithubApp(opts *github.GithubOpts) *ReleaserInstance {
+func (e *ReleaserInstance) ForceUpdate() error {
+	configPath := filepath.Join(e.appDir, "config.json")
+
+	fmt.Println("Checking for updates...")
+
+	newestRelease, err := e.provider.GetNewestReleaseName()
+	if err != nil {
+		return err
+	}
+
+	e.release.ReleaseName = newestRelease
+	e.release.LastCheck = utils.GetCurrentDate()
+	if err := e.release.WriteReleaseCfg(configPath, e.release); err != nil {
+		return err
+	}
+
+	return e.provider.PerformUpdate(e.appDir)
+}
+
+func ConfigureGithubApp(appDir string, opts *github.GithubOpts) *ReleaserInstance {
 	return &ReleaserInstance{
+		appDir:   appDir,
 		release:  release.NewReleaseCfg(),
 		provider: github.NewGithubApp(opts),
 		prompter: prompter.NewPrompter(),
