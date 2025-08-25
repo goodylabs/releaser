@@ -1,0 +1,48 @@
+# Suggested GitHub Actions Workflow for Building and Releasing a Go Project
+
+```yml
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.24"
+
+      - name: Build binary
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+
+          mkdir -p bin
+
+          version_var="github.com/<user/<repo>/<package>/<variable>"
+          ldflags="-X '$version_var=$VERSION'"
+
+          GOOS=linux GOARCH=amd64 go build -ldflags "$ldflags" -o bin/linux-amd64
+          GOOS=linux GOARCH=arm64 go build -ldflags "$ldflags" -o bin/linux-arm64
+          GOOS=darwin GOARCH=amd64 go build -ldflags "$ldflags" -o bin/darwin-amd64
+          GOOS=darwin GOARCH=arm64 go build -ldflags "$ldflags" -o bin/darwin-arm64
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            bin/linux-amd64
+            bin/linux-arm64
+            bin/darwin-amd64
+            bin/darwin-arm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
