@@ -2,6 +2,7 @@ package releaser
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/goodylabs/releaser/adapters/prompter"
@@ -43,9 +44,14 @@ func (e *ReleaserInstance) Run() error {
 		return err
 	}
 
-	if confirm {
-		return e.provider.PerformUpdate(e.appDir)
+	if !confirm {
+		return nil
 	}
+
+	if err := e.provider.PerformUpdate(e.appDir); err == nil {
+		return err
+	}
+	os.Exit(0)
 	return nil
 }
 
