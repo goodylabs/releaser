@@ -14,7 +14,7 @@ func NewPrompter() *Prompter {
 }
 
 func (p *Prompter) Confirm(message string) (bool, error) {
-	fmt.Printf("%s ([y]/n): ", message)
+	fmt.Printf("%s [y]/n: ", message)
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	if err != nil {

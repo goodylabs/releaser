@@ -37,7 +37,7 @@ func (e *ReleaserInstance) Run() (bool, error) {
 		return false, err
 	}
 
-	e.release.ReleaseName = newestRelease
+	// e.release.ReleaseName = newestRelease
 	e.release.LastCheck = utils.GetCurrentDate()
 	if err := e.release.WriteReleaseCfg(configPath, e.release); err != nil {
 		return false, err
