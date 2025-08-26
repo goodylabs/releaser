@@ -1,7 +1,10 @@
 package prompter
 
 import (
-	"github.com/manifoldco/promptui"
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
 )
 
 type Prompter struct{}
@@ -11,13 +14,12 @@ func NewPrompter() *Prompter {
 }
 
 func (p *Prompter) Confirm(message string) (bool, error) {
-	prompt := promptui.Select{
-		Label: message,
-		Items: []string{"Yes", "No"},
-	}
-	_, result, err := prompt.Run()
+	fmt.Printf("%s ([y]/n): ", message)
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
 	if err != nil {
 		return false, err
 	}
-	return result == "Yes", nil
+	input = strings.TrimSpace(strings.ToLower(input))
+	return input == "y" || input == "yes" || input == "", nil
 }

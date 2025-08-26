@@ -31,7 +31,7 @@ func (e *ReleaserInstance) Run() (bool, error) {
 		return false, err
 	}
 
-	confirmMsg := fmt.Sprintf("New version %s is available. Do you want to update? ([y]/n)", newestRelease)
+	confirmMsg := fmt.Sprintf("New version %s is available. Do you want to update?", newestRelease)
 	confirm, err := e.prompter.Confirm(confirmMsg)
 	if err != nil {
 		return false, err
