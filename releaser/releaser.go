@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/goodylabs/releaser/ports"
-	"github.com/goodylabs/releaser/utils"
 )
 
 type ReleaserInstance struct {
@@ -26,23 +25,36 @@ func (e *ReleaserInstance) getConfigPath() string {
 	return filepath.Join(e.appDir, "config.json")
 }
 
+func (e *ReleaserInstance) finishCheck(releaseCfg *ReleaseCfg) {
+	releaseCfg.UpdateLastCheckDate()
+
+	configPath := e.getConfigPath()
+	if err := releaseCfg.SaveToFile(configPath); err != nil {
+		fmt.Println("Could not save release config, contact with devops team, error: ", err)
+	}
+}
+
 func (e *ReleaserInstance) Run() (bool, error) {
 	var releaseCfg ReleaseCfg
 
 	configPath := e.getConfigPath()
 
 	if err := releaseCfg.LoadFromFile(configPath); err != nil {
-		fmt.Print("Could not read release config - trying to update anyway, error: ", err)
+		fmt.Println("Could not read release config - trying to update anyway, error: ", err)
 	}
 
-	if releaseCfg.CheckDontNeedCheck() {
+	if releaseCfg.CheckWasTodayVersionChecked() {
+		e.finishCheck(&releaseCfg)
 		return false, nil
 	}
+
+	e.finishCheck(&releaseCfg)
 
 	fmt.Println("Checking for updates...")
 
 	newestRelease, err := e.provider.GetNewestReleaseName()
 	if err != nil {
+		fmt.Println("Could not get newest release - try again later, error: ", err)
 		return false, err
 	}
 
@@ -56,10 +68,7 @@ func (e *ReleaserInstance) Run() (bool, error) {
 		return false, err
 	}
 
-	releaseCfg.LastCheck = utils.GetCurrentDate()
-	if err := releaseCfg.SaveToFile(configPath); err != nil {
-		return false, err
-	}
+	e.finishCheck(&releaseCfg)
 
 	if !confirm {
 		return false, nil
@@ -78,24 +87,26 @@ func (e *ReleaserInstance) Run() (bool, error) {
 }
 
 func (e *ReleaserInstance) ForceUpdate() error {
-	var releaseCfg ReleaseCfg
+	fmt.Println("Forcing update is temporarily disabled...")
+	return nil
+	// var releaseCfg ReleaseCfg
 
-	configPath := e.getConfigPath()
+	// configPath := e.getConfigPath()
 
-	releaseCfg.LoadFromFile(configPath)
+	// releaseCfg.LoadFromFile(configPath)
 
-	fmt.Println("Checking for updates...")
+	// fmt.Println("Checking for updates...")
 
-	newestRelease, err := e.provider.GetNewestReleaseName()
-	if err != nil {
-		return err
-	}
+	// newestRelease, err := e.provider.GetNewestReleaseName()
+	// if err != nil {
+	// 	return err
+	// }
 
-	releaseCfg.ReleaseName = newestRelease
-	releaseCfg.LastCheck = utils.GetCurrentDate()
-	if err := releaseCfg.SaveToFile(configPath); err != nil {
-		return err
-	}
+	// releaseCfg.ReleaseName = newestRelease
+	// releaseCfg.UpdateLastCheckDate()
+	// if err := releaseCfg.SaveToFile(configPath); err != nil {
+	// 	return err
+	// }
 
-	return e.provider.PerformUpdate(e.appDir)
+	// return e.provider.PerformUpdate(e.appDir)
 }

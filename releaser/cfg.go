@@ -18,7 +18,7 @@ func (r *ReleaseCfg) LoadFromFile(path string) error {
 	return nil
 }
 
-func (r *ReleaseCfg) CheckDontNeedCheck() bool {
+func (r *ReleaseCfg) CheckWasTodayVersionChecked() bool {
 	return r.LastCheck == utils.GetCurrentDate()
 }
 
@@ -28,4 +28,8 @@ func (r *ReleaseCfg) SaveToFile(path string) error {
 
 func (r *ReleaseCfg) CheckIsReleaseTheNewest(newest string) bool {
 	return r.ReleaseName == newest
+}
+
+func (r *ReleaseCfg) UpdateLastCheckDate() {
+	r.LastCheck = utils.GetCurrentDate()
 }
