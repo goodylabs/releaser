@@ -35,8 +35,6 @@ func (g *githubApp) GetNewestReleaseName() (string, error) {
 		return "", err
 	}
 
-	fmt.Println("Latest Release URL:", lastestReleaseUrl)
-
 	g.newReleaseName = releaseRes.TagName
 
 	osType := g.oshelper.GetOSType()

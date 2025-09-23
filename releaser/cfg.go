@@ -18,10 +18,14 @@ func (r *ReleaseCfg) LoadFromFile(path string) error {
 	return nil
 }
 
-func (r *ReleaseCfg) DontNeedCheck() bool {
-	return r.LastCheck != utils.GetCurrentDate()
+func (r *ReleaseCfg) CheckDontNeedCheck() bool {
+	return r.LastCheck == utils.GetCurrentDate()
 }
 
 func (r *ReleaseCfg) SaveToFile(path string) error {
 	return utils.WriteJSONToFile(path, &r)
+}
+
+func (r *ReleaseCfg) CheckIsReleaseTheNewest(newest string) bool {
+	return r.ReleaseName == newest
 }

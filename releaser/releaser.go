@@ -31,7 +31,11 @@ func (e *ReleaserInstance) Run() (bool, error) {
 
 	configPath := e.getConfigPath()
 
-	if releaseCfg.DontNeedCheck() {
+	if err := releaseCfg.LoadFromFile(configPath); err != nil {
+		fmt.Print("Could not read release config - trying to update anyway, error: ", err)
+	}
+
+	if releaseCfg.CheckDontNeedCheck() {
 		return false, nil
 	}
 
@@ -40,6 +44,10 @@ func (e *ReleaserInstance) Run() (bool, error) {
 	newestRelease, err := e.provider.GetNewestReleaseName()
 	if err != nil {
 		return false, err
+	}
+
+	if releaseCfg.CheckIsReleaseTheNewest(newestRelease) {
+		return false, nil
 	}
 
 	confirmMsg := fmt.Sprintf("New version %s is available. Do you want to update?", newestRelease)
@@ -73,6 +81,8 @@ func (e *ReleaserInstance) ForceUpdate() error {
 	var releaseCfg ReleaseCfg
 
 	configPath := e.getConfigPath()
+
+	releaseCfg.LoadFromFile(configPath)
 
 	fmt.Println("Checking for updates...")
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -27,7 +28,9 @@ func main() {
 			Repo: githubRepo,
 		})
 
-	if _, err := app.Run(); err != nil {
+	updated, err := app.Run()
+	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println(updated)
 }
