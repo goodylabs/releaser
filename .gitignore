@@ -1,2 +1,3 @@
 .development
 .env
+__debug_*

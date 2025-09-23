@@ -5,18 +5,23 @@ import (
 )
 
 type ReleaseCfg struct {
-	ReleaseName string `json:"releaseName"`
+	ReleaseName string `json:"release"`
 	LastCheck   string `json:"lastCheck"`
 }
 
-func (b *ReleaseCfg) DontNeedCheck(path string) bool {
+func (r *ReleaseCfg) LoadFromFile(path string) error {
 	cfg, err := utils.ReadJSONFromFile[ReleaseCfg](path)
 	if err != nil {
-		return true
+		return err
 	}
-	return cfg.LastCheck != utils.GetCurrentDate()
+	*r = cfg
+	return nil
 }
 
-func (b *ReleaseCfg) WriteReleaseCfg(path string, cfg *ReleaseCfg) error {
-	return utils.WriteJSONToFile(path, cfg)
+func (r *ReleaseCfg) DontNeedCheck() bool {
+	return r.LastCheck != utils.GetCurrentDate()
+}
+
+func (r *ReleaseCfg) SaveToFile(path string) error {
+	return utils.WriteJSONToFile(path, &r)
 }

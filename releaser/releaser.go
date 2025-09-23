@@ -31,7 +31,7 @@ func (e *ReleaserInstance) Run() (bool, error) {
 
 	configPath := e.getConfigPath()
 
-	if releaseCfg.DontNeedCheck(configPath) {
+	if releaseCfg.DontNeedCheck() {
 		return false, nil
 	}
 
@@ -48,9 +48,8 @@ func (e *ReleaserInstance) Run() (bool, error) {
 		return false, err
 	}
 
-	releaseCfg.ReleaseName = newestRelease
 	releaseCfg.LastCheck = utils.GetCurrentDate()
-	if err := releaseCfg.WriteReleaseCfg(configPath, &releaseCfg); err != nil {
+	if err := releaseCfg.SaveToFile(configPath); err != nil {
 		return false, err
 	}
 
@@ -61,6 +60,12 @@ func (e *ReleaserInstance) Run() (bool, error) {
 	if err := e.provider.PerformUpdate(e.appDir); err != nil {
 		return false, err
 	}
+
+	releaseCfg.ReleaseName = newestRelease
+	if err := releaseCfg.SaveToFile(configPath); err != nil {
+		return false, err
+	}
+
 	return true, nil
 }
 
@@ -78,7 +83,7 @@ func (e *ReleaserInstance) ForceUpdate() error {
 
 	releaseCfg.ReleaseName = newestRelease
 	releaseCfg.LastCheck = utils.GetCurrentDate()
-	if err := releaseCfg.WriteReleaseCfg(configPath, &releaseCfg); err != nil {
+	if err := releaseCfg.SaveToFile(configPath); err != nil {
 		return err
 	}
 
