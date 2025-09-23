@@ -4,23 +4,34 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/goodylabs/releaser/adapters/prompter"
 	"github.com/goodylabs/releaser/ports"
-	"github.com/goodylabs/releaser/providers/github"
-	"github.com/goodylabs/releaser/release"
 	"github.com/goodylabs/releaser/utils"
 )
 
 type ReleaserInstance struct {
-	release  *release.ReleaseCfg
 	provider ports.Provider
 	appDir   string
-	prompter *prompter.Prompter
+	prompter ports.Prompter
+}
+
+func NewReleaserInstance(appDir string, provider ports.Provider, prompter ports.Prompter) *ReleaserInstance {
+	return &ReleaserInstance{
+		appDir:   appDir,
+		provider: provider,
+		prompter: prompter,
+	}
+}
+
+func (e *ReleaserInstance) getConfigPath() string {
+	return filepath.Join(e.appDir, "config.json")
 }
 
 func (e *ReleaserInstance) Run() (bool, error) {
-	configPath := filepath.Join(e.appDir, "config.json")
-	if !e.release.CheckNeedsCheck(configPath) {
+	var releaseCfg ReleaseCfg
+
+	configPath := e.getConfigPath()
+
+	if releaseCfg.DontNeedCheck(configPath) {
 		return false, nil
 	}
 
@@ -37,9 +48,9 @@ func (e *ReleaserInstance) Run() (bool, error) {
 		return false, err
 	}
 
-	// e.release.ReleaseName = newestRelease
-	e.release.LastCheck = utils.GetCurrentDate()
-	if err := e.release.WriteReleaseCfg(configPath, e.release); err != nil {
+	releaseCfg.ReleaseName = newestRelease
+	releaseCfg.LastCheck = utils.GetCurrentDate()
+	if err := releaseCfg.WriteReleaseCfg(configPath, &releaseCfg); err != nil {
 		return false, err
 	}
 
@@ -54,7 +65,9 @@ func (e *ReleaserInstance) Run() (bool, error) {
 }
 
 func (e *ReleaserInstance) ForceUpdate() error {
-	configPath := filepath.Join(e.appDir, "config.json")
+	var releaseCfg ReleaseCfg
+
+	configPath := e.getConfigPath()
 
 	fmt.Println("Checking for updates...")
 
@@ -63,20 +76,11 @@ func (e *ReleaserInstance) ForceUpdate() error {
 		return err
 	}
 
-	e.release.ReleaseName = newestRelease
-	e.release.LastCheck = utils.GetCurrentDate()
-	if err := e.release.WriteReleaseCfg(configPath, e.release); err != nil {
+	releaseCfg.ReleaseName = newestRelease
+	releaseCfg.LastCheck = utils.GetCurrentDate()
+	if err := releaseCfg.WriteReleaseCfg(configPath, &releaseCfg); err != nil {
 		return err
 	}
 
 	return e.provider.PerformUpdate(e.appDir)
-}
-
-func ConfigureGithubApp(appDir string, opts *github.GithubOpts) *ReleaserInstance {
-	return &ReleaserInstance{
-		appDir:   appDir,
-		release:  release.NewReleaseCfg(),
-		provider: github.NewGithubApp(opts),
-		prompter: prompter.NewPrompter(),
-	}
 }

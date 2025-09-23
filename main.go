@@ -5,24 +5,24 @@ import (
 	"os"
 	"path/filepath"
 
-	releaser "github.com/goodylabs/releaser"
-	"github.com/goodylabs/releaser/providers/github"
+	"github.com/goodylabs/releaser/api"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	devPath := filepath.Join(".development")
-
-	if err := godotenv.Load(); err != nil {
-		log.Println(".env file not found, using system env")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file")
 	}
 
 	githubUser := os.Getenv("GITHUB_USER")
 	githubRepo := os.Getenv("GITHUB_REPO")
 
-	app := releaser.ConfigureGithubApp(
+	devPath := filepath.Join(".development")
+
+	app := api.ConfigureGithubApp(
 		devPath,
-		&github.GithubOpts{
+		&api.GithubAppOpts{
 			User: githubUser,
 			Repo: githubRepo,
 		})

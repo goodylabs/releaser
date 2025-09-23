@@ -1,4 +1,4 @@
-package release
+package releaser
 
 import (
 	"github.com/goodylabs/releaser/utils"
@@ -9,11 +9,7 @@ type ReleaseCfg struct {
 	LastCheck   string `json:"lastCheck"`
 }
 
-func NewReleaseCfg() *ReleaseCfg {
-	return new(ReleaseCfg)
-}
-
-func (b *ReleaseCfg) CheckNeedsCheck(path string) bool {
+func (b *ReleaseCfg) DontNeedCheck(path string) bool {
 	cfg, err := utils.ReadJSONFromFile[ReleaseCfg](path)
 	if err != nil {
 		return true
