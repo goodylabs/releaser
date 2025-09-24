@@ -43,12 +43,11 @@ func (e *ReleaserInstance) Run() (bool, error) {
 		fmt.Println("Could not read release config - trying to update anyway, error: ", err)
 	}
 
+	defer e.finishCheck(&releaseCfg)
+
 	if releaseCfg.CheckWasTodayVersionChecked() {
-		e.finishCheck(&releaseCfg)
 		return false, nil
 	}
-
-	e.finishCheck(&releaseCfg)
 
 	fmt.Println("Checking for updates...")
 
@@ -67,8 +66,6 @@ func (e *ReleaserInstance) Run() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
-	e.finishCheck(&releaseCfg)
 
 	if !confirm {
 		return false, nil
